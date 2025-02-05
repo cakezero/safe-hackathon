@@ -7,5 +7,10 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@cowprotocol/cow-sdk": "^5.10.0",
+    "@fileverse/agents": "^1.0.4",
+    "dotenv": "^16.4.7"
   }
 }
