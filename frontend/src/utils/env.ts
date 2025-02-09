@@ -1,15 +1,11 @@
-import * as dotenv from 'dotenv';
+// Definition of the environment variables used in the frontend
 
-dotenv.config();
+const PIMLICO_API_KEY = import.meta.env.VITE_PIMLICO_API_KEY;
 
-const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY;
+const PINATA_GATEWAY = import.meta.env.VITE_PINATA_GATEWAY;
 
-const SEPOLIA_TESTNET = process.env.SEPOLIA_TESTNET;
+const PINATA_JWT_SECRET = import.meta.env.VITE_PINATA_JWT_SECRET;
 
-const PINATA_GATEWAY = process.env.PINATA_GATEWAY;
+const CHAIN = import.meta.env.VITE_CHAIN;
 
-const PINATA_JWT_SECRET = process.env.PINATA_JWT_SECRET;
-
-const CHAIN = process.env.CHAIN;
-
-export { PIMLICO_API_KEY, CHAIN, SEPOLIA_TESTNET, PINATA_GATEWAY, PINATA_JWT_SECRET };
+export { PIMLICO_API_KEY, CHAIN, PINATA_GATEWAY, PINATA_JWT_SECRET };
