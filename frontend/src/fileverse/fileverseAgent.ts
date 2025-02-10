@@ -3,7 +3,8 @@ import { Agent } from "@fileverse/agents";
 import { CHAIN, PINATA_JWT_SECRET, PINATA_GATEWAY, PIMLICO_API_KEY } from "../utils/env";
 
 let storage: `0x${string}` | undefined = undefined;
-let agentSet;
+// @ts-ignore
+let agentSet: Agent | undefined = undefined;
 
 const agent = async () => {
   if (agentSet) return agentSet;
