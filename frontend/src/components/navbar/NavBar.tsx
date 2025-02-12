@@ -1,14 +1,21 @@
-import ConnectButton from "./ConnectButton"
+// import ConnectButton from "./ConnectButton"
+import { Wallet } from "lucide-react";
 
 export default function NavBar() {
-    return(
-        <div className="navbar bg-base-100 shadow-sm container mx-auto">
-            <div className="flex-1">
-                <a className="btn btn-ghost text-xl">token creation</a>
-            </div>
-            <div className="flex-none">
-                <ConnectButton />
-            </div>
+    const connectWallet = () => {
+        
+    }
+    return (
+      <div className="navbar bg-base-100 shadow-sm container mx-auto">
+        <div className="flex-1">
+          <a className="btn btn-ghost text-xl">Token Forge</a>
         </div>
-    )
+        <div className="flex-none">
+          <button className="btn btn-primary" onClick={connectWallet}>
+            <Wallet />
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
 }
