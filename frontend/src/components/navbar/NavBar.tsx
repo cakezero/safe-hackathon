@@ -1,21 +1,43 @@
 // import ConnectButton from "./ConnectButton"
-import { Wallet } from "lucide-react";
+import { Wallet, Menu } from "lucide-react";
+import {NavLink} from "react-router";
 
 export default function NavBar() {
+
     const connectWallet = () => {
         
     }
     return (
       <div className="navbar bg-base-100 shadow-sm container mx-auto">
-        <div className="flex-1">
-          <a className="btn btn-ghost text-xl">Token Forge</a>
+        <div className="navbar-start">
+          <div className="dropdown">
+            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+              <Menu />
+            </div>
+            <ul
+              tabIndex={0}
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+              <li>
+                <NavLink to="/tokens">my tokens</NavLink>
+              </li>
+            </ul>
+          </div>
+          <NavLink to="/" className="btn btn-ghost text-xl">token forge</NavLink>
         </div>
-        <div className="flex-none">
+        <div className="navbar-center hidden lg:flex">
+          <ul className="menu menu-horizontal px-1">
+            <li>  
+              <NavLink to="/tokens">my tokens</NavLink>
+            </li>
+          </ul>
+        </div>
+        <div className="navbar-end">
           <button className="btn btn-primary" onClick={connectWallet}>
             <Wallet />
             Connect Wallet
           </button>
         </div>
+          
       </div>
     );
 }
