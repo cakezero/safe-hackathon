@@ -1,4 +1,4 @@
-export const tokenProp = {
+export const factoryProp = {
   abi: [
     {
       inputs: [

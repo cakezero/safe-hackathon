@@ -2,7 +2,7 @@ import { SupportedChainId, SigningScheme, OrderBookApi, OrderSigningUtils, Unsig
 import { ethers, Signer } from "ethers"
 import { Web3Provider } from "@ethersproject/providers";
 import { abi } from "./erc/erc20"
-import { tokenProp } from "./erc/tokenProp"
+import { factoryProp } from "./erc/factoryProp"
 import { getETHQuote, getTokenQuote } from "./quote";
 
 const relayerAddress = "0x"
@@ -117,34 +117,36 @@ const ETHSwap = async (provider: Web3Provider, tokenAddress: `0x${string}`, ethA
 const deployToken = async (provider: Web3Provider, tokenName: string, tokenQuantity: number, tokenSymbol: string) => {
   const signer = provider.getSigner();
 
-  const token = new ethers.ContractFactory(tokenProp.abi, tokenProp.bytecode, signer as unknown as Signer);
+  const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer as unknown as Signer);
 
-  const deployedToken = await token.deploy(tokenName, tokenSymbol, tokenQuantity);
+  const deployedFactory = await factory.deploy(tokenName, tokenSymbol, tokenQuantity);
 
-  const tokenHash = deployedToken.deploymentTransaction()?.hash;
+  const tokenHash = deployedFactory.deploymentTransaction()?.hash;
 
-  await deployedToken.waitForDeployment();
+  await deployedFactory.waitForDeployment();
   
-  const deployedTokenAddress = await deployedToken.getAddress();
+  const deployedFactoryAddress = await deployedFactory.getAddress();
 
-  const tokenContract = new ethers.Contract(deployedTokenAddress, tokenProp.abi, signer as unknown as Signer)
+  const factoryContract = new ethers.Contract(deployedFactoryAddress, factoryProp.abi, signer as unknown as Signer)
 
-  const tokenAddress = await tokenContract.getTokenAddress();
+  const tokenAddress = await factoryContract.getTokenAddress();
 
-  return { deployedTokenAddress, tokenHash, tokenAddress };
+  return { deployedFactoryAddress, tokenHash, tokenAddress };
 }
 
-const addLiquidity = async (provider: Web3Provider, tokenContractAddress: string, ethAmount: string, tokenAmount: number) => { 
+const addLiquidity = async (provider: Web3Provider, factoryContractAddress: string, ethAmount: string, tokenAmount: number) => { 
   const signer = provider.getSigner();
 
-  const tokenContract = new ethers.Contract(tokenContractAddress, tokenProp.abi, signer as unknown as Signer)
+  const tokenContract = new ethers.Contract(factoryContractAddress, factoryProp.abi, signer as unknown as Signer);
 
   const liquidityAdd = await tokenContract.AddLiquidityETH(tokenAmount, { value: ethers.parseUnits(ethAmount, "ether") });
 
-  const tx = liquidityAdd.hash;
+  console.log({ liquidityAdd })
 
   await liquidityAdd.wait();
 
+  const tx = liquidityAdd.transactionHash;
+  
   return { tx };
 }
 
