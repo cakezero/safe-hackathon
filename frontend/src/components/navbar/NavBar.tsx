@@ -1,12 +1,9 @@
 // import ConnectButton from "./ConnectButton"
 import { Wallet, Menu } from "lucide-react";
 import {NavLink} from "react-router";
+import { wallet } from "./wallet";
 
 export default function NavBar() {
-
-    const connectWallet = () => {
-        
-    }
     return (
       <div className="navbar bg-base-100 shadow-sm container mx-auto">
         <div className="navbar-start">
@@ -32,7 +29,7 @@ export default function NavBar() {
           </ul>
         </div>
         <div className="navbar-end">
-          <button className="btn btn-primary" onClick={connectWallet}>
+          <button className="btn btn-primary" onClick={wallet}>
             <Wallet />
             Connect Wallet
           </button>
