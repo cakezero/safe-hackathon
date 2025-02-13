@@ -40,10 +40,10 @@ function App() {
                 defaultChecked
               />
               <div className="tab-content bg-base-100 border-base-300 p-6">
-                {/* <CreateTokenForm
+                <CreateTokenForm
                   tokenDetails={tokenDetails}
                   setTokenDetails={setTokenDetails}
-                /> */}
+                />
               </div>
 
               <input
@@ -55,7 +55,7 @@ function App() {
                 onChange={handleTabLiquidityTrigger}
               />
               <div className="tab-content bg-base-100 border-base-300 p-6">
-                {/* <LiquidityForm /> */}
+                <LiquidityForm />
               </div>
 
               <input
