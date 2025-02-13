@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       crypto: "crypto-browserify",
+      'node-fetch': 'cross-fetch',
     },
+  },
+  define: {
+    global: 'globalThis',
   },
 });
