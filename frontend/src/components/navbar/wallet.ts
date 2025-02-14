@@ -10,13 +10,14 @@ export const wallet = async () => {
         console.log("heheh")
         return { signer, ethBalance };
     }
-
-    if (typeof window.ethereum! === "undefined") {
+    // @ts-ignore
+    if (typeof window.ethereum === "undefined") {
         toast.error("Please install a compatible ETH wallet")
         return;
     }
     console.log("wall")
-    const provider = new ethers.providers.Web3Provider(window.ethereum!);
+    // @ts-ignore
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
     const network = await provider.getNetwork()
 
