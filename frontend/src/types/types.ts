@@ -1,15 +1,15 @@
 export interface User {
-  tokenAddress: string[];
-  tokenFactory: string[];
-  fileId: number[];
-  tokenBalance: number[];
-  ethBalance: number;
-  owner: string;
-  tokenName: string[];
-  tokenSymbol: string[];
+  tokenAddress: string[] | undefined;
+  tokenFactory: string[] | undefined;
+  fileId: number[] | undefined;
+  tokenBalance: number[] | undefined;
+  ethBalance: number | undefined;
+  owner: string | undefined;
+  tokenName: string[] | undefined;
+  tokenSymbol: string[] | undefined;
 }
 
 export interface UserContextType {
-  globalUser: User;
-  setGlobalUser: React.Dispatch<React.SetStateAction<User>>;
+  globalUser: User | undefined;
+  setGlobalUser: React.Dispatch<React.SetStateAction<User | undefined>>;
 }

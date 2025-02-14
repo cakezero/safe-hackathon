@@ -42,7 +42,7 @@ const InputSelectField = ({ isSwapped }: SwapFormProps) => {
       (async () => {
         const result = await wallet();
           const signer = result?.signer;
-          setEthBalance(result?.ethBalance.toString())
+          setEthBalance(result!.ethBalance.toString())
 
         const contract = new ethers.Contract(address!, abi, signer);
         const balance = await contract.balanceOf(await signer?.getAddress());
@@ -102,7 +102,7 @@ const InputSelectField = ({ isSwapped }: SwapFormProps) => {
         const { globalUser } = useUser() as UserContextType;
         const { tokenAddress } = globalUser ?? {};
 
-        address = tokenAddress![indexInput!];
+        address = tokenAddress![indexInput];
 
         const swapToken = async () => {
           setSubmit(true);
