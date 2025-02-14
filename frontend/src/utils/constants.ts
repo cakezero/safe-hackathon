@@ -1,1 +1,1 @@
-export const API = "http://token-forge-server.onrender.com";
+export const API = " https://safe-server.onrender.com";
