@@ -5,9 +5,8 @@ import { useUser } from "../../context/useUser";
 import { addLiquidity } from "../../token/token";
 import axios from "axios";
 import { wallet } from "../navbar/wallet";
+import { Spinner } from "../../utils/Spinner";
 import { API } from "../../utils/constants";
-import fileverseAgent from "../../fileverse/fileverseAgent";
-
 
 export default function LiquidityForm() {
   // const [selectedToken1, setSelectedToken1] = useState("");
@@ -19,7 +18,8 @@ export default function LiquidityForm() {
   const [ethAmount, setEthAmount] = useState<string | undefined>(undefined);
   const [tokenAmount, setTokenAmount] = useState<string | undefined>(undefined);
   const [hash, setHash] = useState<string | undefined>(undefined);
-  const [tokenIndex, setTokenIndex] = useState<number | undefined>(undefined)
+  const [tokenIndex, setTokenIndex] = useState<number | undefined>(undefined);
+  const [submit, setSubmit] = useState<boolean>(false);
 
   const handleToken2Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const index = e.target.selectedIndex - 1; // Adjust for the disabled first option
@@ -40,8 +40,9 @@ export default function LiquidityForm() {
   
   const AddLiquidity = async () => {
     try {
-      const walletResult = await wallet();
-      const signer = await walletResult?.signer;
+     setSubmit(true);
+     const walletResult = await wallet();
+     const signer = walletResult?.signer;
   
       const factory = tokenFactory![tokenIndex!];
       const address = tokenAddress![tokenIndex!];
@@ -52,8 +53,9 @@ export default function LiquidityForm() {
       
       const { tx } = await addLiquidity(signer!, ethAmount!, factory, parseInt(tokenAmount!));
       setHash(tx);
-      const updateDoc = await fileverseAgent().updateFile(id, `token_name: ${name};\n token_symbol: ${symbol};\n token_balance: ${balance};\n token_CA: ${address};\n tokenFactory: ${factory};\n liquidity(ETH -> token): ${ethAmount} -> ${tokenAmount}`);
-      console.log(`Updated doc: ${updateDoc}`);
+      const response = await axios.post(`${API}/update`, { id, content: `token_name: ${name};\n token_symbol: ${symbol};\n token_balance: ${balance};\n token_CA: ${address};\n tokenFactory: ${factory};\n liquidity(ETH -> token): ${ethAmount} -> ${tokenAmount}` });
+      console.log(`Updated doc: ${response.data.updateDoc}`);
+      setSubmit(false)
     } catch (error) {
       console.error("Error adding liquidity:", error);
     }
@@ -112,7 +114,14 @@ export default function LiquidityForm() {
                   className="btn btn-primary mt-4"
                   onClick={AddLiquidity}
                 >
-                  Add Liquidity
+                  {submit ? (
+                    <>
+                      <Spinner />
+                      <span className="ml-2">Adding Liquidity</span>
+                    </>
+                  ) : (
+                    "Add Liquidity"
+                  )}
                 </button>
               </fieldset>
               {hash ? <p>You can view the transaction status here: {hash}</p> : <></>}

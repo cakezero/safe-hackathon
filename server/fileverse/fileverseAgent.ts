@@ -1,7 +1,5 @@
 import { Agent } from "@fileverse/agents";
 
-import { CHAIN, PINATA_JWT_SECRET, PINATA_GATEWAY, PIMLICO_API_KEY } from "../utils/env";
-
 let storage: `0x${string}` | undefined = undefined;
 // @ts-ignore
 let agentSet: Agent | undefined = undefined;
@@ -10,10 +8,10 @@ const agent = async () => {
   if (agentSet) return agentSet;
 
   agentSet = new Agent({
-    chain: CHAIN,
-    pinataJWT: PINATA_JWT_SECRET,
-    pinataGateway: PINATA_GATEWAY,
-    pimlicoAPIKey: PIMLICO_API_KEY,
+    chain: process.env.CHAIN,
+    pinataJWT: process.env.PINATA_JWT_SECRET,
+    pinataGateway: process.env.PINATA_GATEWAY,
+    pimlicoAPIKey: process.env.PIMLICO_API_KEY,
   });
 
   if (!storage) {
@@ -52,14 +50,12 @@ export default function fileverseAgent() {
   };
 
   const updateFile = async (fileId: number, content: string) => {
-    let updatedFileId: number | undefined = undefined
     const fileExists = await agentInstance.getFile(fileId);
     if (fileExists.contentIpfsHash === "") {
-      updatedFileId = await createFile("content");
+      throw new Error("FileId doesn't exist!");
     }
-    const id = updatedFileId ? updatedFileId : fileId
-    const updatedFile = await agentInstance.update(id, content);
-    return { updatedFile, updatedFileId };
+    const updatedFile = await agentInstance.update(fileId, content);
+    return updatedFile;
   }
 
   return { createFile, getFile, updateFile }

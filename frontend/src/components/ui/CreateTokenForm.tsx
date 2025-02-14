@@ -4,8 +4,8 @@ import { wallet } from "../navbar/wallet";
 import { useUser } from "../../context/useUser";
 import { UserContextType } from "../../types/types";
 import axios from "axios";
-import fileverseAgent from "../../fileverse/fileverseAgent";
 import { useState } from "react";
+import { Spinner } from "../../utils/Spinner";
 
 interface TokenDetails {
   tokenName: string;
@@ -23,7 +23,8 @@ export default function CreateTokenForm({
   setTokenDetails,
 }: CreateTokenFormProps) {
     const { setGlobalUser } = useUser as unknown as UserContextType
-    const [hash, setHash] = useState<string | undefined>(undefined)
+  const [hash, setHash] = useState<string | undefined>(undefined);
+  const [submit, setSubmit] = useState<boolean>(false)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTokenDetails((prevDetails) => ({
@@ -34,6 +35,7 @@ export default function CreateTokenForm({
 
     const createToken = async () => {
         console.log("hee")
+        setSubmit(true)
         const { tokenName, tokenSymbol, tokenSupply } = tokenDetails;
 
         if (tokenName === "" || tokenSymbol === "" || tokenSupply === "") {
@@ -42,19 +44,31 @@ export default function CreateTokenForm({
         }
 
         const walletResult = await wallet();
-        const userAddress = await walletResult?.signer.getAddress();
         const signer = walletResult?.signer
+        const userAddress = await signer?.getAddress();
 
-        const { tokenAddress, tokenBalance, tokenHash, deployedFactoryAddress } = await deployToken(signer!, userAddress!, tokenName, parseInt(tokenSupply), tokenSymbol);
-        const upBalance = parseInt(tokenBalance)
+        const {
+          tokenAddress,
+          tokenBalance,
+          tokenHash,
+          deployedFactoryAddress,
+        } = await deployToken(
+          signer!,
+          tokenName,
+          parseInt(tokenSupply),
+          tokenSymbol,
+          userAddress!
+        );
+        const upBalance = parseInt(tokenBalance);
 
-        const fileId = await fileverseAgent().createFile(
-            `token_name: ${tokenName};\n token: ${tokenAddress};\n tokenFactory: ${deployedFactoryAddress};\n`
+        const response = await axios.post(`${API}/create`,
+            {content: `token_name: ${tokenName};\n token: ${tokenAddress};\n tokenFactory: ${deployedFactoryAddress};\n`}
         );
 
-        const response = await axios.post(`${API}/save-token`, { tokenAddress, tokenName, tokenBalance: upBalance, tokenFactory: deployedFactoryAddress, owner: userAddress, fileId });
-        response.data.tokenProp.ethBalance = walletResult?.ethBalance;
-        setGlobalUser(response.data.tokenProp);
+        const createResponse = await axios.post(`${API}/save-token`, { tokenAddress, tokenName, tokenBalance: upBalance, tokenFactory: deployedFactoryAddress, owner: userAddress, fileId: response.data.fileId });
+        createResponse.data.tokenProp.ethBalance = walletResult?.ethBalance;
+        setGlobalUser(createResponse.data.tokenProp);
+      setSubmit(false);
         setHash(tokenHash);
     }
 
@@ -97,7 +111,14 @@ export default function CreateTokenForm({
                 onClick={createToken}
                 className="btn btn-primary mt-4"
               >
-                create
+                {submit ? (
+                  <>
+                    <Spinner />
+                    <span className="ml-2">Creating Token...</span>
+                  </>
+                ) : (
+                  "Create"
+                )}
               </button>
             </fieldset>
           </div>

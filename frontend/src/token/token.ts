@@ -1,6 +1,5 @@
 import { SupportedChainId, SigningScheme, OrderBookApi, OrderSigningUtils, UnsignedOrder } from "@cowprotocol/cow-sdk";
-import { ethers, Signer } from "ethers"
-import { Web3Provider } from "@ethersproject/providers";
+import { ethers } from "ethers"
 import { abi } from "./erc/erc20"
 import { factoryProp } from "./erc/factoryProp"
 import { getETHQuote, getTokenQuote } from "./quote";
@@ -8,20 +7,19 @@ import { getETHQuote, getTokenQuote } from "./quote";
 const relayerAddress = "0x"
 const WETH = "0xfff9976782d46cc05630d1f6ebab18b2324d6b14";
 
-const TokenSwap = async (provider: Web3Provider, tokenAddress: string, tokenAmount: string) => {
+const TokenSwap = async (signer: ethers.providers.JsonRpcSigner, tokenAddress: string, tokenAmount: string) => {
   
   try {
-    const signer = provider.getSigner();
     const userAddress = await signer.getAddress();
     const feeAmount = "0";
 
     const token = new ethers.Contract(
       tokenAddress,
       abi,
-      signer as unknown as Signer
+      signer
     );
 
-    const tx = await token.approve(relayerAddress, ethers.MaxUint256);
+    const tx = await token.approve(relayerAddress, ethers.constants.MaxUint256);
     console.log("tx:", tx, "\n");
     const receipt = await tx.wait();
     console.log("receipt:", receipt, "\n");
@@ -63,16 +61,15 @@ const TokenSwap = async (provider: Web3Provider, tokenAddress: string, tokenAmou
   }
 }
 
-const ETHSwap = async (provider: Web3Provider, tokenAddress: `0x${string}`, ethAmount: string) => {
+const ETHSwap = async (signer: ethers.providers.JsonRpcSigner, tokenAddress: string, ethAmount: string) => {
 
   try {
-    const signer = provider.getSigner();
     const userAddress = await signer.getAddress();
     const feeAmount = "0";
   
-    const token = new ethers.Contract(WETH, abi, signer as unknown as Signer);
+    const token = new ethers.Contract(WETH, abi, signer);
   
-    const tx = await token.approve(relayerAddress, ethers.MaxUint256);
+    const tx = await token.approve(relayerAddress, ethers.constants.MaxUint256);
     console.log("tx:", tx, "\n");
     const receipt = await tx.wait();
     console.log("receipt:", receipt, "\n");
@@ -114,10 +111,9 @@ const ETHSwap = async (provider: Web3Provider, tokenAddress: `0x${string}`, ethA
   }
 }
 
-const deployToken = async (provider: Web3Provider, tokenName: string, tokenQuantity: number, tokenSymbol: string) => {
-  const signer = provider.getSigner();
+const deployToken = async (signer: ethers.providers.JsonRpcSigner, tokenName: string, tokenQuantity: number, tokenSymbol: string, userAddress: string) => {
 
-  const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer as unknown as Signer);
+  const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer);
 
   const deployedFactory = await factory.deploy(tokenName, tokenSymbol, tokenQuantity);
 
@@ -127,19 +123,24 @@ const deployToken = async (provider: Web3Provider, tokenName: string, tokenQuant
   
   const deployedFactoryAddress = await deployedFactory.getAddress();
 
-  const factoryContract = new ethers.Contract(deployedFactoryAddress, factoryProp.abi, signer as unknown as Signer)
+  const factoryContract = new ethers.Contract(deployedFactoryAddress, factoryProp.abi, signer)
 
   const tokenAddress = await factoryContract.getTokenAddress();
 
-  return { deployedFactoryAddress, tokenHash, tokenAddress };
+  const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
+
+  const weiTokenBalance = await tokenContract.balanceOf(userAddress);
+
+  const tokenBalance = ethers.utils.formatUnits(weiTokenBalance, 18);
+
+  return { deployedFactoryAddress, tokenHash, tokenAddress, tokenBalance };
 }
 
-const addLiquidity = async (provider: Web3Provider, factoryContractAddress: string, ethAmount: string, tokenAmount: number) => { 
-  const signer = provider.getSigner();
+const addLiquidity = async (signer: ethers.providers.JsonRpcSigner, factoryContractAddress: string, ethAmount: string, tokenAmount: number) => { 
 
-  const tokenContract = new ethers.Contract(factoryContractAddress, factoryProp.abi, signer as unknown as Signer);
+  const tokenContract = new ethers.Contract(factoryContractAddress, factoryProp.abi, signer);
 
-  const liquidityAdd = await tokenContract.AddLiquidityETH(tokenAmount, { value: ethers.parseUnits(ethAmount, "ether") });
+  const liquidityAdd = await tokenContract.AddLiquidityETH(tokenAmount, { value: ethers.utils.parseUnits(ethAmount, "ether") });
 
   console.log({ liquidityAdd })
 
