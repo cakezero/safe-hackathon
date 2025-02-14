@@ -102,7 +102,11 @@ const InputSelectField = ({ isSwapped }: SwapFormProps) => {
         const { globalUser } = useUser() as UserContextType;
         const { tokenAddress } = globalUser ?? {};
 
-        address = tokenAddress![indexInput];
+        if (indexInput !== undefined && tokenAddress && indexInput < tokenAddress.length) {
+          address = tokenAddress[indexInput];
+        } else {
+          console.error('Invalid indexInput or tokenAddress');
+        }
 
         const swapToken = async () => {
           setSubmit(true);
