@@ -6,6 +6,8 @@ import { getETHQuote, getTokenQuote } from "./quote";
 
 const relayerAddress = "0x"
 const WETH = "0xfff9976782d46cc05630d1f6ebab18b2324d6b14";
+const router = "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3";
+const uniswap_factory = "0xF62c03E08ada871A0bEb309762E260a7a6a880E6";
 
 const TokenSwap = async (signer: ethers.providers.JsonRpcSigner, tokenAddress: string, tokenAmount: string) => {
   
@@ -127,7 +129,7 @@ const deployToken = async (signer: ethers.providers.JsonRpcSigner, tokenName: st
   const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer);
   console.log({factory})
 
-  const deployedFactory = await factory.deploy(tokenAddress);
+  const deployedFactory = await factory.deploy(tokenAddress, router, uniswap_factory, WETH);
   console.dir({deployedFactory})
 
   await deployedFactory.deployTransaction.wait();
@@ -145,20 +147,30 @@ const deployToken = async (signer: ethers.providers.JsonRpcSigner, tokenName: st
   return { deployedFactoryAddress, tokenHash, tokenAddress, tokenBalance };
 }
 
-const addLiquidity = async (signer: ethers.providers.JsonRpcSigner, factoryContractAddress: string, ethAmount: string, tokenAmount: number) => { 
+const addLiquidity = async (signer: ethers.providers.JsonRpcSigner, factoryContractAddress: string, ethAmount: string, tokenAmount: number, tokenAddress: string, userAddress: string) => { 
+  console.log({ factoryContractAddress })
 
-  const tokenContract = new ethers.Contract(factoryContractAddress, factoryProp.abi, signer);
-  console.log({tokenContract})
+  const tokenfactory = new ethers.Contract(tokenAddress, factoryProp.abi, signer);
+  console.log({tokenfactory})
 
   const weiAmount = ethers.utils.parseUnits(tokenAmount.toString(), 18);
+  const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
+  await tokenContract.approve(router, weiAmount);
 
-  const liquidityAdd = await tokenContract.AddLiquidityETH(weiAmount, { value: ethers.utils.parseEther(ethAmount), gasLimit: 500000 });
+  // const allowance = await tokenfactory.allowance(userAddress, router);
+  // console.log(`Allowance: ${ethers.utils.formatUnits(allowance, 18)}`);
+  const llowance = await tokenContract.allowance(userAddress, router);
+  console.log(`Allowance: ${ethers.utils.formatUnits(llowance, 18)}`);
+
+  const eth = ethers.utils.parseEther(ethAmount);
+
+  const liquidityAdd = await tokenfactory.AddLiquidityETH(weiAmount, { value: eth, gasLimit: 500000 });
 
   console.log({ liquidityAdd })
 
   await liquidityAdd.wait();
 
-  const tx = liquidityAdd.transactionHash;
+  const tx = liquidityAdd.hash;
   
   return { tx };
 }

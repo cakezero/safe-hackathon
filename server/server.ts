@@ -40,7 +40,7 @@ const tokenSchema = new mongoose.Schema({
   }]
 });
 
-const token = mongoose.model("tokesProp", tokenSchema)
+const token = mongoose.model("tokensProp", tokenSchema)
 
 server.post("/save-token", async (req: Request, res: Response) => {
   try {

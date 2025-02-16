@@ -49,9 +49,11 @@ export default function LiquidityForm() {
   
   const AddLiquidity = async () => {
     try {
-     setSubmit(true);
+      setSubmit(true);
+      console.log({tokenIndex})
      const walletResult = await wallet();
       const signer = walletResult?.signer;
+      const userAddress = await signer?.getAddress();
       console.log({globalUser})
   
       const factory = tokenFactory![tokenIndex!];
@@ -61,7 +63,7 @@ export default function LiquidityForm() {
       const name = tokenName![tokenIndex!];
       const symbol = tokenSymbol![tokenIndex!]
       
-      const { tx } = await addLiquidity(signer!, factory!, ethAmount!, parseInt(tokenAmount!));
+      const { tx } = await addLiquidity(signer!, factory!, ethAmount!, parseInt(tokenAmount!), address, userAddress!);
       setHash(tx);
       const response = await axios.post(`${API}/update`, { id, content: `token_name: ${name};\n token_symbol: ${symbol};\n token_balance: ${balance};\n token_CA: ${address};\n tokenFactory: ${factory};\n liquidity(ETH -> token): ${ethAmount} -> ${tokenAmount}` });
       console.log(`Updated doc: ${response.data.updateDoc}`);

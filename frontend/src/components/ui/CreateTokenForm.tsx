@@ -52,7 +52,7 @@ export default function CreateTokenForm({
             tokenAddress,
             tokenBalance,
             tokenHash,
-            deployedFactoryAddress,
+            deployedFactoryAddress
           } = await deployToken(
             signer!,
             tokenName,
@@ -64,12 +64,11 @@ export default function CreateTokenForm({
             tokenAddress,
             tokenBalance,
             tokenHash,
-            deployedFactoryAddress,
           });
           const upBalance = parseInt(tokenBalance);
 
           const response = await axios.post(`${API}/create`, {
-            content: `token_name: ${tokenName};\n token: ${tokenAddress};\n tokenFactory: ${deployedFactoryAddress};\n`,
+            content: `token_name: ${tokenName};\n token: ${tokenAddress};\n token_symbol: ${tokenSymbol};\n`,
           });
 
           const createResponse = await axios.post(`${API}/save-token`, {
