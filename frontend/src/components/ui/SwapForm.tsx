@@ -45,7 +45,8 @@ const InputSelectField = ({ isSwapped }: SwapFormProps) => {
           setEthBalance(result!.ethBalance.toString())
 
         const contract = new ethers.Contract(address!, abi, signer);
-        const balance = await contract.balanceOf(await signer?.getAddress());
+        const addy = await signer?.getAddress()
+        const balance = await contract.balanceOf(addy);
         setBalance(balance);
       })();
     });
@@ -97,41 +98,56 @@ const InputSelectField = ({ isSwapped }: SwapFormProps) => {
     };
     
     export default function SwapForm() {
-        const [isSwapped, setIsSwapped] = useState<boolean>(false);
-        const [submit, setSubmit] = useState<boolean>(false);
-        const { globalUser } = useUser() as UserContextType;
-        const { tokenAddress } = globalUser ?? {};
+      const [isSwapped, setIsSwapped] = useState<boolean>(false);
+          const [submit, setSubmit] = useState<boolean>(false);
+          const { globalUser } = useUser() as UserContextType;
+          const { tokenAddress } = globalUser ?? {};
 
-        if (indexInput !== undefined && tokenAddress && indexInput < tokenAddress.length) {
-          address = tokenAddress[indexInput];
-        } else {
-          console.error('Invalid indexInput or tokenAddress');
-        }
+          if (
+            indexInput !== undefined &&
+            tokenAddress &&
+            indexInput < tokenAddress.length
+          ) {
+            address = tokenAddress[indexInput];
+          } else {
+            console.log({ address }, "swap");
+            console.error("Invalid indexInput or tokenAddress");
+          }
 
-        const swapToken = async () => {
-          setSubmit(true);
-           const result = await wallet();
+          const swapToken = async () => {
+            try {
+            setSubmit(true);
+            const result = await wallet();
 
             const signer = result?.signer;
             await TokenSwap(signer!, address!, tokenInput!);
             toast.success("Token for ETH swap completed");
 
-          setSubmit(false);
-        };
+            setSubmit(false);
+            } catch (error) {
+              console.error(error)
+              setSubmit(false)
+            }
+          };
 
-        const ethSwap = async () => {
-            setSubmit(true);
+          const ethSwap = async () => {
+            try {
+              setSubmit(true);
             const result = await wallet();
 
             const signer = result?.signer;
             await ETHSwap(signer!, address!, ethInput!);
-            toast.success("ETH for token swap completed")
-            setSubmit(false);
-        };
-    
-        const handleSwap = () => {
+            toast.success("ETH for token swap completed");
+              setSubmit(false);
+            } catch (error) {
+              console.error(error)
+              setSubmit(false)
+            }
+          };
+
+          const handleSwap = () => {
             setIsSwapped(!isSwapped);
-        };
+          };
     
         return (
           <div className="card w-full max-w-sm shrink-0 shadow-2xl">

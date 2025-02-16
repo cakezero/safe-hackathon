@@ -7,14 +7,16 @@ import axios from "axios";
 import { wallet } from "../navbar/wallet";
 import { Spinner } from "../../utils/Spinner";
 import { API } from "../../utils/constants";
+import { useLocation } from "react-router";
 
 export default function LiquidityForm() {
   // const [selectedToken1, setSelectedToken1] = useState("");
   // const [selectedToken2, setSelectedToken2] = useState("");
   // const [isModalOpen, setIsModalOpen] = useState(false);
   const { globalUser, setGlobalUser } = useUser() as UserContextType;
+  const location = useLocation();
   
-  const { ethBalance, tokenName, tokenAddress, tokenSymbol, tokenBalance, tokenFactory, owner, fileId } = globalUser ?? {};
+  const { ethBalance, tokenName, tokenAddress, tokenSymbol, tokenBalance, tokenFactory, fileId } = globalUser ?? {};
   const [ethAmount, setEthAmount] = useState<string | undefined>(undefined);
   const [tokenAmount, setTokenAmount] = useState<string | undefined>(undefined);
   const [hash, setHash] = useState<string | undefined>(undefined);
@@ -30,19 +32,27 @@ export default function LiquidityForm() {
   
   useEffect(() => {
     (async () => {
+      // console.log({owner})
+      console.log("effect hit")
       const result = await wallet();
-      const ethEffBalance = result?.ethBalance
+      const ethEffBalance = result?.ethBalance;
+      const owner = await result?.signer.getAddress();
+      console.log({owner})
+      console.log("api to be sent")
       const response = await axios.get(`${API}/fetch-token?owner=${owner}`);
+      console.log({response})
       response.data.tokenFound.ethBalance = ethEffBalance;
-      setGlobalUser(response.data.tokenProp);
+      console.log({ data: response.data.tokenFound });
+      setGlobalUser(response.data.tokenFound);
     })();
-  }, [ethBalance, owner, setGlobalUser]);
+  }, [ethBalance, setGlobalUser, location.pathname]);
   
   const AddLiquidity = async () => {
     try {
      setSubmit(true);
      const walletResult = await wallet();
-     const signer = walletResult?.signer;
+      const signer = walletResult?.signer;
+      console.log({globalUser})
   
       const factory = tokenFactory![tokenIndex!];
       const address = tokenAddress![tokenIndex!];
@@ -51,7 +61,7 @@ export default function LiquidityForm() {
       const name = tokenName![tokenIndex!];
       const symbol = tokenSymbol![tokenIndex!]
       
-      const { tx } = await addLiquidity(signer!, ethAmount!, factory, parseInt(tokenAmount!));
+      const { tx } = await addLiquidity(signer!, factory!, ethAmount!, parseInt(tokenAmount!));
       setHash(tx);
       const response = await axios.post(`${API}/update`, { id, content: `token_name: ${name};\n token_symbol: ${symbol};\n token_balance: ${balance};\n token_CA: ${address};\n tokenFactory: ${factory};\n liquidity(ETH -> token): ${ethAmount} -> ${tokenAmount}` });
       console.log(`Updated doc: ${response.data.updateDoc}`);
@@ -76,8 +86,7 @@ export default function LiquidityForm() {
                   defaultValue="Select a token"
                   className="select select-primary"
                 >
-                  <option disabled={true}>Select a token</option>
-                  <option>ETH</option>
+                  <option defaultChecked>ETH</option>
                 </select>
                 <input
                   type="text"
@@ -100,7 +109,9 @@ export default function LiquidityForm() {
                 >
                   <option disabled={true}>Select a token</option>
                   {tokenSymbol?.map((symbol, index) => (
-                    <option value={symbol} key={index}>{symbol}</option>
+                    <option value={symbol} key={index}>
+                      {symbol}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -124,7 +135,20 @@ export default function LiquidityForm() {
                   )}
                 </button>
               </fieldset>
-              {hash ? <p>You can view the transaction status here: {hash}</p> : <></>}
+              {hash ? (
+                <p>
+                  View the transaction status here -{" "}
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://sepolia.etherscan.io/tx/${hash}`}
+                  >
+                    click here.
+                  </a>
+                </p>
+              ) : (
+                <></>
+              )}
             </div>
           </form>
           {/* {isModalOpen && (

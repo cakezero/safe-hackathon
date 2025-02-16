@@ -1,6 +1,6 @@
 import { SupportedChainId, SigningScheme, OrderBookApi, OrderSigningUtils, UnsignedOrder } from "@cowprotocol/cow-sdk";
 import { ethers } from "ethers"
-import { abi } from "./erc/erc20"
+import { abi, bytecode } from "./erc/erc20"
 import { factoryProp } from "./erc/factoryProp"
 import { getETHQuote, getTokenQuote } from "./quote";
 
@@ -113,22 +113,31 @@ const ETHSwap = async (signer: ethers.providers.JsonRpcSigner, tokenAddress: str
 
 const deployToken = async (signer: ethers.providers.JsonRpcSigner, tokenName: string, tokenQuantity: number, tokenSymbol: string, userAddress: string) => {
 
-  const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer);
+  const tokenFactory = new ethers.ContractFactory(abi, bytecode, signer);
+  const deployedToken = await tokenFactory.deploy(tokenName, tokenSymbol, tokenQuantity);
 
-  const deployedFactory = await factory.deploy(tokenName, tokenSymbol, tokenQuantity);
+  const tokenHash = deployedToken.deployTransaction?.hash;
+  console.log({ tokenHash });
 
-  const tokenHash = deployedFactory.deploymentTransaction()?.hash;
-
-  await deployedFactory.waitForDeployment();
+  await deployedToken.deployTransaction.wait()
   
-  const deployedFactoryAddress = await deployedFactory.getAddress();
+  const tokenAddress = deployedToken.address;
 
-  const factoryContract = new ethers.Contract(deployedFactoryAddress, factoryProp.abi, signer)
+  console.log({tokenAddress})
+  const factory = new ethers.ContractFactory(factoryProp.abi, factoryProp.bytecode, signer);
+  console.log({factory})
 
-  const tokenAddress = await factoryContract.getTokenAddress();
+  const deployedFactory = await factory.deploy(tokenAddress);
+  console.dir({deployedFactory})
+
+  await deployedFactory.deployTransaction.wait();
+  
+  const deployedFactoryAddress = deployedFactory.address;
+  console.log({deployedFactoryAddress})
 
   const tokenContract = new ethers.Contract(tokenAddress, abi, signer);
-
+  console.log({ tokenContract })
+  
   const weiTokenBalance = await tokenContract.balanceOf(userAddress);
 
   const tokenBalance = ethers.utils.formatUnits(weiTokenBalance, 18);
@@ -139,8 +148,11 @@ const deployToken = async (signer: ethers.providers.JsonRpcSigner, tokenName: st
 const addLiquidity = async (signer: ethers.providers.JsonRpcSigner, factoryContractAddress: string, ethAmount: string, tokenAmount: number) => { 
 
   const tokenContract = new ethers.Contract(factoryContractAddress, factoryProp.abi, signer);
+  console.log({tokenContract})
 
-  const liquidityAdd = await tokenContract.AddLiquidityETH(tokenAmount, { value: ethers.utils.parseUnits(ethAmount, "ether") });
+  const weiAmount = ethers.utils.parseUnits(tokenAmount.toString(), 18);
+
+  const liquidityAdd = await tokenContract.AddLiquidityETH(weiAmount, { value: ethers.utils.parseEther(ethAmount), gasLimit: 500000 });
 
   console.log({ liquidityAdd })
 

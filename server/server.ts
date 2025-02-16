@@ -45,6 +45,7 @@ const token = mongoose.model("tokesProp", tokenSchema)
 server.post("/save-token", async (req: Request, res: Response) => {
   try {
     const { owner, fileId, tokenAddress, tokenFactory, tokenSymbol, tokenName, tokenBalance } = req.body;
+    console.log("save hit")
     const tokenExists = await token.findOne({ owner });
 
     if (!tokenExists) {
@@ -89,6 +90,7 @@ server.post("/create", async (req: Request, res: Response) => {
   try {
     const { content } = req.body;
     const fileId = await fileverseAgent().createFile(content);
+    console.log({fileId})
     res.status(200).json({ message: "File created successfully", fileId })
   } catch (error) {
     console.error(error)
@@ -123,7 +125,9 @@ server.post("/update", async (req: Request, res: Response) => {
 server.get("/fetch-token", async (req: Request, res: Response) => {
   try {
     const { owner } = req.query;
+    console.log({owner})
     const tokenFound = await token.find({ owner });
+    console.log({tokenFound})
 
     if (!tokenFound) {
       res.status(400).json({ error: "No user found" })

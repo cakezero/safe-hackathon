@@ -3,8 +3,7 @@ export interface User {
   tokenFactory: string[] | undefined;
   fileId: number[] | undefined;
   tokenBalance: number[] | undefined;
-  ethBalance: number | undefined;
-  owner: string | undefined;
+  ethBalance: string | undefined;
   tokenName: string[] | undefined;
   tokenSymbol: string[] | undefined;
 }

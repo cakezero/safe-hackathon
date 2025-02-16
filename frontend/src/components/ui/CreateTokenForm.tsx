@@ -6,6 +6,7 @@ import { UserContextType } from "../../types/types";
 import axios from "axios";
 import { useState } from "react";
 import { Spinner } from "../../utils/Spinner";
+import { API } from "../../utils/constants";
 
 interface TokenDetails {
   tokenName: string;
@@ -17,12 +18,11 @@ interface CreateTokenFormProps {
   tokenDetails: TokenDetails;
   setTokenDetails: React.Dispatch<React.SetStateAction<TokenDetails>>;
 }
-const API = ""
 export default function CreateTokenForm({
   tokenDetails,
   setTokenDetails,
 }: CreateTokenFormProps) {
-    const { setGlobalUser } = useUser as unknown as UserContextType
+    const { setGlobalUser } = useUser() as UserContextType
   const [hash, setHash] = useState<string | undefined>(undefined);
   const [submit, setSubmit] = useState<boolean>(false)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,42 +34,64 @@ export default function CreateTokenForm({
   };
 
     const createToken = async () => {
-        console.log("hee")
-        setSubmit(true)
-        const { tokenName, tokenSymbol, tokenSupply } = tokenDetails;
+        try {
+          console.log("hee");
+          const { tokenName, tokenSymbol, tokenSupply } = tokenDetails;
 
-        if (tokenName === "" || tokenSymbol === "" || tokenSupply === "") {
+          if (tokenName === "" || tokenSymbol === "" || tokenSupply === "") {
             toast.error("Please enter all details to create token");
             return;
+          }
+          setSubmit(true);
+
+          const walletResult = await wallet();
+          const signer = walletResult?.signer;
+          const userAddress = await signer?.getAddress();
+
+          const {
+            tokenAddress,
+            tokenBalance,
+            tokenHash,
+            deployedFactoryAddress,
+          } = await deployToken(
+            signer!,
+            tokenName,
+            parseInt(tokenSupply),
+            tokenSymbol,
+            userAddress!
+          );
+          console.log({
+            tokenAddress,
+            tokenBalance,
+            tokenHash,
+            deployedFactoryAddress,
+          });
+          const upBalance = parseInt(tokenBalance);
+
+          const response = await axios.post(`${API}/create`, {
+            content: `token_name: ${tokenName};\n token: ${tokenAddress};\n tokenFactory: ${deployedFactoryAddress};\n`,
+          });
+
+          const createResponse = await axios.post(`${API}/save-token`, {
+            tokenAddress,
+            tokenName,
+            tokenSymbol,
+            tokenBalance: upBalance,
+            tokenFactory: deployedFactoryAddress,
+            owner: userAddress,
+            fileId: response.data.fileId,
+          });
+          createResponse.data.tokenProp.ethBalance = walletResult?.ethBalance.toString();
+          const userProp = createResponse.data.tokenProp;
+          console.log({userProp})
+          setGlobalUser(userProp);
+          toast.success(`${tokenName} has been created successfully!`);
+          setSubmit(false);
+          setHash(tokenHash);
+        } catch (error) {
+          console.error(error)
+          setSubmit(false)
         }
-
-        const walletResult = await wallet();
-        const signer = walletResult?.signer
-        const userAddress = await signer?.getAddress();
-
-        const {
-          tokenAddress,
-          tokenBalance,
-          tokenHash,
-          deployedFactoryAddress,
-        } = await deployToken(
-          signer!,
-          tokenName,
-          parseInt(tokenSupply),
-          tokenSymbol,
-          userAddress!
-        );
-        const upBalance = parseInt(tokenBalance);
-
-        const response = await axios.post(`${API}/create`,
-            {content: `token_name: ${tokenName};\n token: ${tokenAddress};\n tokenFactory: ${deployedFactoryAddress};\n`}
-        );
-
-        const createResponse = await axios.post(`${API}/save-token`, { tokenAddress, tokenName, tokenBalance: upBalance, tokenFactory: deployedFactoryAddress, owner: userAddress, fileId: response.data.fileId });
-        createResponse.data.tokenProp.ethBalance = walletResult?.ethBalance;
-        setGlobalUser(createResponse.data.tokenProp);
-      setSubmit(false);
-        setHash(tokenHash);
     }
 
   return (
@@ -122,7 +144,14 @@ export default function CreateTokenForm({
               </button>
             </fieldset>
           </div>
-          {hash ? <p>View the transaction status here: {hash}</p> : <></>}
+          {hash ? (
+            <p>
+              View the transaction status here - {" "}
+              <a target="_blank" rel="noopener noreferrer" href={`https://sepolia.etherscan.io/tx/${hash}`}>click here.</a>
+            </p>
+          ) : (
+            <></>
+          )}
         </form>
       </div>
     </div>

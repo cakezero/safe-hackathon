@@ -28,7 +28,8 @@ export default function fileverseAgent() {
 
   const createFile = async (content: string) => {
     const createdFile = await agentInstance.create(content);
-    return createdFile.fileId;
+    const fileId = Number(createdFile.fileId);
+    return fileId;
   }
 
   const getFile = async (fileId: number) => {
@@ -42,6 +43,7 @@ export default function fileverseAgent() {
       const ipfsContentSring = file.contentIpfsHash.replace("ipfs://", "");
       const res = await fetch(`https://ipfs.io/ipfs/${ipfsContentSring}`);
       const data = await res.text();
+      console.log(`File fetched: ${data}\n`)
       return data;
     } catch (error) {
       console.error("Error fetching file:", error);

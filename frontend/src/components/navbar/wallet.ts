@@ -1,8 +1,8 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 import toast from "react-hot-toast"
 
 let signer: ethers.providers.JsonRpcSigner | undefined = undefined
-let ethBalance: BigNumber | undefined = undefined
+let ethBalance: string | undefined = undefined
 
 export const wallet = async () => {
     console.log("helo")
@@ -24,12 +24,15 @@ export const wallet = async () => {
     if (network.chainId === 11155111) {
         signer = provider.getSigner();
         const address = await signer.getAddress();
-        ethBalance = await provider.getBalance(address);
+        const balance = await provider.getBalance(address);
+        ethBalance = ethers.utils.formatEther(balance).slice(0, 5);
+        console.log({ethBalance})
         return { signer, ethBalance };
     }
     await provider.send("wallet_switchEthereumChain", [{ chainId: "0xaa36a7" }]);
     signer = provider.getSigner();
     const address = await signer.getAddress();
-    ethBalance = await provider.getBalance(address);
+    const balance = await provider.getBalance(address);
+    ethBalance = ethers.utils.formatEther(balance).slice(0, 5);
     return { signer, ethBalance };
 }

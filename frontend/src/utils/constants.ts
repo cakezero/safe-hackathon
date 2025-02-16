@@ -1,1 +1,1 @@
-export const API = " https://safe-server.onrender.com";
+export const API = "http://localhost:7000";
